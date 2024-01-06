@@ -88,6 +88,16 @@ $(document).ready(function(){
 		$(this).attr('id', 'window' + (i++));
 		$(this).wrapInner('<div class="wincontent"></div>');
 		$(this).prepend('<div class="windowHeader"><strong>' + $(this).attr("data-title") + '</strong><span title="Minimize" class="winminimize"><span></span></span><span title="Maximize" class="winmaximize"><span></span><span></span></span><span title="Close" class="winclose">x</span></div>');
+		// Inicializar la función draggable con Touch Punch para compatibilidad con pantallas táctiles
+    	$(".window").draggable({
+        handle: ".title-bar", // Agregar un mango específico para el arrastre
+        containment: "parent", // Restringir el arrastre dentro del elemento principal
+        start: function (event, ui) {
+            // Al inicio del arrastre, asegúrate de que esta ventana sea la más alta
+            $(".window").css("z-index", 1);
+            $(this).css("z-index", 2);
+        }
+    }).css("touch-action", "none"); // Desactivar la acción táctil predeterminada
 	});
 	
 	$("#minimPanel" + (i-1)).addClass('activeTab');
@@ -143,13 +153,3 @@ $(document).ready(function(){
     });		
 	adjustFullScreenSize();	
 });
-
-$(".window").draggable({
-            handle: ".title-bar", // Agregar un mango específico para el arrastre
-            containment: "parent", // Restringir el arrastre dentro del elemento principal
-            start: function (event, ui) {
-                // Al inicio del arrastre, asegúrate de que esta ventana sea la más alta
-                $(".window").css("z-index", 1);
-                $(this).css("z-index", 2);
-            }
-        });
