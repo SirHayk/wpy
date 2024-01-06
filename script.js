@@ -1,129 +1,155 @@
-// Returns Int
-function rand(a,b, double) {
-	// [0,a]
-    if( arguments.length == 1 )
-    	return Math.round(Math.random() * a);
-    // [a,b]
-    else if( arguments.length == 2 )
-    	return a + Math.round(Math.random() * (b - a)); 
-    // [0,...]
-    return Math.round(Math.random() * Number.MAX_SAFE_INTEGER);
+/*################################################################################
+##################################################################################
+##########                                                             ###########
+##########                                                             ###########
+##########        Windows Template by                                  ###########
+##########            https://html5-templates.com/                      ###########
+##########                                                             ###########
+##########        All rights reserved.                                 ###########
+##########                                                             ###########
+##################################################################################
+################################################################################*/
+
+var i = 0,
+minimizedWidth = new Array,
+minimizedHeight = new Array,
+windowTopPos = new Array,
+windowLeftPos = new Array,
+panel,
+id;
+
+function adjustFullScreenSize() {
+	$(".fullSizeWindow .wincontent").css("width", (window.innerWidth - 32));
+	$(".fullSizeWindow .wincontent").css("height", (window.innerHeight - 98));
+}
+function makeWindowActive(thisid) {
+	$(".window").each(function() {      
+		$(this).css('z-index', $(this).css('z-index') - 1);
+	});
+	$("#window" + thisid).css('z-index',1000);
+	$(".window").removeClass("activeWindow");
+	$("#window" + thisid).addClass("activeWindow");
+	
+	$(".taskbarPanel").removeClass('activeTab');
+	
+	$("#minimPanel" + thisid).addClass("activeTab");
 }
 
-// Returns Double
-function random(a,b) {
-	// [0,a]
-    if( arguments.length == 1 )
-    	return Math.random() * a;
-    // [a,b]
-    else if( arguments.length == 2 )
-    	return a + (Math.random() * (b - a)); 
-    // [0,...]
-    return Math.random();
+function minimizeWindow(id){
+	windowTopPos[id] = $("#window" + id).css("top");
+	windowLeftPos[id] = $("#window" + id).css("left");
+	
+	$("#window" + id).animate({
+		top: 800,
+		left: 0
+	}, 200, function() {		//animation complete
+		$("#window" + id).addClass('minimizedWindow');
+		$("#minimPanel" + id).addClass('minimizedTab');
+		$("#minimPanel" + id).removeClass('activeTab');
+	});	
 }
 
+function openWindow(id) {
+	if ($('#window' + id).hasClass("minimizedWindow")) {
+		openMinimized(id);
+	} else {	
+		makeWindowActive(id);
+		$("#window" + id).removeClass("closed");
+		$("#minimPanel" + id).removeClass("closed");
+	}
+}
+function closeWindwow(id) {
+	$("#window" + id).addClass("closed");
+	$("#minimPanel" + id).addClass("closed");
+}
 
-function Particles(canvas, count) {
-    this.count = 0;
-    this.particles = {};
+function openMinimized(id) {
+	$('#window' + id).removeClass("minimizedWindow");
+	$('#minimPanel' + id).removeClass("minimizedTab");
+	makeWindowActive(id);
+		
+	$('#window' + id).animate({
+		top: windowTopPos[id],
+		left: windowLeftPos[id]
+	}, 200, function() {
+	});				
+}
 
-    this.add = function() {
-        this.particles[this.count] = new Particle(canvas, this.count, this.particles, {
-            y: 1
+$(document).ready(function(){
+	$(".window").each(function() {      		// window template
+		$(this).css('z-index',1000)
+		$(this).attr('data-id', i);
+		minimizedWidth[i] = $(this).width();
+		minimizedHeight[i] = $(this).height();
+		windowTopPos[i] = $(this).css("top");
+		windowLeftPos[i] = $(this).css("left");
+		$("#taskbar").append('<div class="taskbarPanel" id="minimPanel' + i + '" data-id="' + i + '">' + $(this).attr("data-title") + '</div>');
+		if ($(this).hasClass("closed")) {	$("#minimPanel" + i).addClass('closed');	}		
+		$(this).attr('id', 'window' + (i++));
+		$(this).wrapInner('<div class="wincontent"></div>');
+		$(this).prepend('<div class="windowHeader"><strong>' + $(this).attr("data-title") + '</strong><span title="Minimize" class="winminimize"><span></span></span><span title="Maximize" class="winmaximize"><span></span><span></span></span><span title="Close" class="winclose">x</span></div>');
+	});
+	
+	$("#minimPanel" + (i-1)).addClass('activeTab');
+	$("#window" + (i-1)).addClass('activeWindow');
+	
+	$( ".wincontent" ).resizable();			// resizable
+	$( ".window" ).draggable({ cancel: ".wincontent" });	// draggable
+	
+
+    $(".window").mousedown(function(){		// active window on top (z-index 1000)
+		makeWindowActive($(this).attr("data-id"));
+    });
+	
+    $(".winclose").click(function(){		// close window
+		closeWindwow($(this).parent().parent().attr("data-id"));
+    });	
+
+    $(".winminimize").click(function(){		// minimize window
+		minimizeWindow($(this).parent().parent().attr("data-id"));
+    });	
+	
+    $(".taskbarPanel").click(function(){		// taskbar click
+		id = $(this).attr("data-id");
+		if ($(this).hasClass("activeTab")) {	// minimize if active
+			minimizeWindow($(this).attr("data-id"));
+		} else {
+			if ($(this).hasClass("minimizedTab")) {	// open if minimized
+				openMinimized(id);
+			} else {								// activate if inactive
+				makeWindowActive(id);
+			}
+		}
+    });	
+	
+    $(".openWindow").click(function(){		// open closed window
+		openWindow($(this).attr("data-id"));
+    });
+	
+    $(".winmaximize").click(function(){
+		if ($(this).parent().parent().hasClass('fullSizeWindow')) {			// minimize
+			
+			$(this).parent().parent().removeClass('fullSizeWindow');
+			$(this).parent().parent().children(".wincontent").height(minimizedHeight[$(this).parent().parent().attr("data-id")]);	
+			$(this).parent().parent().children(".wincontent").width(minimizedWidth[$(this).parent().parent().attr("data-id")]);
+		} else {															// maximize
+			$(this).parent().parent().addClass('fullSizeWindow');
+			
+			minimizedHeight[$(this).parent().parent().attr('data-id')] = $(this).parent().parent().children(".wincontent").height();
+			minimizedWidth[$(this).parent().parent().attr('data-id')] = $(this).parent().parent().children(".wincontent").width();
+			
+			adjustFullScreenSize();
+		}
+    });		
+	adjustFullScreenSize();	
+});
+
+$(".window").draggable({
+            handle: ".title-bar", // Agregar un mango específico para el arrastre
+            containment: "parent", // Restringir el arrastre dentro del elemento principal
+            start: function (event, ui) {
+                // Al inicio del arrastre, asegúrate de que esta ventana sea la más alta
+                $(".window").css("z-index", 1);
+                $(this).css("z-index", 2);
+            }
         });
-        this.count += 1;
-    }
-
-    this.draw = function() {
-        Object.values(this.particles).forEach(function(p){ p.draw(); });
-    }
-
-    count = count || rand(500, 1000);
-    for(var i = 0; i < count; i++) {
-        this.add();
-    }
-
-    
-}
-
-
-
-function Particle(canvas, id, parent, opt) {
-    opt = (typeof opt === typeof {}) ? opt : {};
-    this.id = (typeof id == typeof 0) ? id : new Date().getTime();
-    this.parent = parent;
-    this.canvas = canvas;
-    this.p = [opt.x || rand(), 0];
-    this.v = [random(-10,10), random(0,2)];
-    this.a = [random(-1,1), 0];
-    this.r = opt.r || random(0,2);
-    this.color = [random(360), 66, 66, random()];
-
-    this.amp = random(1.5);
-
-    this.draw = function() {
-        var canvas = this.canvas.el;
-        var c = this.canvas.c;
-
-        this.v[1] = (this.v[1] + this.a[1]);
-
-        this.p[0] = (this.p[0] + this.amp * Math.sin(this.v[0])) % canvas.width;
-        this.p[1] = (this.p[1] + this.v[1]);
-
-        if( canvas.height < this.p[1] ) {
-            delete this.parent[this.id];
-        }
-
-        this.color[0] = (this.color[0] + this.v[0]) % 360;
-
-        c.globalAlpha = this.color[3];
-        c.beginPath();
-        c.arc(this.p[0], this.p[1], this.r, 0, 2*Math.PI, false);
-        c.fillStyle = '#fff';
-        c.fill();
-        c.globalAlpha = 1;
-    }
-}
-
-
-
-function Canvas() {
-    this.el = document.createElement('canvas');
-    this.el.id = "playground";
-    this.c = this.el.getContext('2d');
-    document.body.appendChild(this.el);
-
-    this.resize = function() {
-        this.el.width = window.innerWidth;
-        this.el.height = window.innerHeight;
-    }
-
-    this.refresh = function() {
-        this.c.clearRect(0, 0, this.el.width, this.el.height);
-    }
-
-    this.resize();
-}
-
-
-
-window.onload = function setup() {
-    var canvas = new Canvas();
-
-    canvas.refresh();
-
-    window.onresize  = function() {
-        canvas.resize();
-    }
-
-    var p = new Particles(canvas, 100);
-
-    setInterval(function(){
-        canvas.refresh();
-        p.draw();
-    }, 30);
-
-    setInterval(function(){
-        p.add();
-    }, 60);
-}
